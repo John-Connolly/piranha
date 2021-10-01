@@ -301,7 +301,8 @@ class XPFlagCleaner: SyntaxRewriter {
         } else if let tupleExprNode = TupleExprSyntax.init(node) {
             // handle (a)
             // TODO: Is there a better way of getting the first element from this collection?
-            if let firstChild = tupleExprNode.elementList.first(where: { $0.indexInParent == 0 }) {
+            // BUG removes expression when first element of tuple is true
+            if let firstChild = tupleExprNode.elementList.first(where: { $0.indexInParent == 0 }), tupleExprNode.elementList.map({ $0.colon }).count < 1 {
                 return cache(expression: Syntax(tupleExprNode), with: evaluate(expression: Syntax(firstChild.expression)))
             }
         } else {
@@ -635,6 +636,8 @@ class XPFlagCleaner: SyntaxRewriter {
         // handling some custom code that should not be refactored
         if node.description.hasSuffix("recordMode = false || platformUIChange") {
             return super.visit(node)
+        } else if !node.description.contains("variation") {
+            return super.visit(node)
         }
         return simplify(node: node)
     }
@@ -729,7 +732,7 @@ class XPFlagCleaner: SyntaxRewriter {
             }
             // remove the first trivia piece and leave the rest
             // drops " //comment3" and adds "//comment4"
-            for trivia in leadingTrivia.dropFirst() { 
+            for trivia in leadingTrivia.dropFirst() {
                 updatedTrivia = updatedTrivia.appending(trivia)
             }
             /* update the keyword

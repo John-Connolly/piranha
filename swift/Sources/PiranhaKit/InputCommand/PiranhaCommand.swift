@@ -85,7 +85,7 @@ struct CleanupStaleFlagsCommand: ParsableCommand {
             refactoredOutput = cleaner.visit(parsed)
         }
 
-        let reducers: [SyntaxRewriter] = [IfElseStmtRewriter()]
+        let reducers: [SyntaxRewriter] = [IfElseStmtRewriter(), FeatureFlagEnumRewriter(flagName: flag)]
         refactoredOutput = reducers.reduce(refactoredOutput,
                                            { (previousOutput, rewriter) -> Syntax in
             rewriter.visit(refactoredOutput)
